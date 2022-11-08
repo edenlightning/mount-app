@@ -1,6 +1,7 @@
 import os.path
 import lightning as L
 import logging
+import torch
 
 
 from quick_start.components import ImageServeGradio
@@ -25,23 +26,15 @@ class FlashTrainer(L.LightningWork):
         from flash.core.data.utils import download_data
         from flash.video import VideoClassificationData, VideoClassifier
 
-        # 1. Create the DataModule
-        # Find more datasets at https://pytorchvideo.readthedocs.io/en/latest/data.html
-
-        # download_data("https://pl-flash-data.s3.amazonaws.com/kinetics.zip", "./data")
-        print("######### imports ok")
-
-        files = os.listdir("/data/kinetics-flash-test/")
-        for file in files:
-            print(file)
-
-        print("######### print files ok")
-
         path = "/data/kinetics-flash-test/"
         url = "https://pl-flash-data.s3.amazonaws.com/kinetics.zip"
 
         if os.path.exists(path):
             print("#########data exists!")
+            files = os.listdir("/data/kinetics-flash-test/")
+            for file in files:
+                print(file)
+            print("######### print files ok")
 
         if not os.path.exists(path):
             print("#########need to download data")
@@ -68,7 +61,7 @@ class FlashTrainer(L.LightningWork):
                     fp.write(chunk)  # type: ignore
 
         with zipfile.ZipFile("/data/kinetics-flash-test/kinetics.zip", "r") as zip_ref:
-                    zip_ref.extractall("./data")
+            zip_ref.extractall("/data")
         print("#########after download")
 
         datamodule = VideoClassificationData.from_folders(

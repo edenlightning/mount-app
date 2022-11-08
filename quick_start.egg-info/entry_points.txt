@@ -1,0 +1,3 @@
+[lightning.external_components]
+demo = quick_start:exported_lightning_components
+

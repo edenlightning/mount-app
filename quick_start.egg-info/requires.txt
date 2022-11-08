@@ -1,0 +1,10 @@
+torchvision==0.10.0
+jsonargparse[signatures]
+wandb==0.12.16
+gradio==2.9.4
+pyyaml==5.4.0
+protobuf<4.21.0
+lightning_hpo
+websockets
+lightning-flash[video]
+pytorchvideo

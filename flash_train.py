@@ -26,22 +26,39 @@ class FlashTrainer(L.LightningWork):
         from flash.core.data.utils import download_data
         from flash.video import VideoClassificationData, VideoClassifier
 
-        path = "/data/kinetics-flash-test/"
         url = "https://pl-flash-data.s3.amazonaws.com/kinetics.zip"
+        path = "/data"
 
         if os.path.exists(path):
-            print("#########data exists!")
-            files = os.listdir("/data/kinetics-flash-test/")
-            for file in files:
-                print(file)
-            print("######### print files ok")
+            print("#########Has mount!")
+            path = "/data/kinetics-flash-test/kinetics/"
+            # files = os.listdir("/data/kinetics-flash-test/kinetics/train")
+            # for file in files:
+            #     print("########train: " + file)
+            #     if os.path.isdir(file):  
+            #         print(file + " is a directory")
+            #         ds = os.listdir(file)
+            #         for d in ds:
+            #             print(d)
+            #     else: 
+            #         print(file + " is a normal file")
 
-        if not os.path.exists(path):
-            print("#########need to download data")
+            # files = os.listdir("/data/kinetics-flash-test/kinetics/val")
+            # for file in files:
+            #     print("######### val: " + file)
+            #     if os.path.isdir(file):  
+            #         print(file + " is a directory")
+            #         ds = os.listdir(file)
+            #         for d in ds:
+            #             print(d)
+            #     else: 
+            #         print(file + " is a normal file")
+        else:
+            path = "./data/kinetics/"
+            print("######### need to download data")
             os.makedirs(path)
             local_filename = os.path.join(path, url.split("/")[-1])
             # Find more datasets at https://pytorchvideo.readthedocs.io/en/latest/data.html
-            print("#########local:filename" + local_filename)
 
             r = requests.get(url, stream=True, verify=False)
             file_size = int(r.headers["Content-Length"]) if "Content-Length" in r.headers else 0
@@ -60,13 +77,13 @@ class FlashTrainer(L.LightningWork):
                 ):
                     fp.write(chunk)  # type: ignore
 
-        with zipfile.ZipFile("/data/kinetics-flash-test/kinetics.zip", "r") as zip_ref:
-            zip_ref.extractall("/data")
-        print("#########after download")
+            with zipfile.ZipFile("./data/kinetics/kinetics.zip", "r") as zip_ref:
+                zip_ref.extractall("./data")
+            print("#########after download")
 
         datamodule = VideoClassificationData.from_folders(
-            train_folder="data/kinetics/train",
-            val_folder="data/kinetics/val",
+            train_folder= path + "train",
+            val_folder=path + "val",
             clip_sampler="uniform",
             clip_duration=1,
             decode_audio=False,
@@ -77,7 +94,7 @@ class FlashTrainer(L.LightningWork):
         # 2. Build the task
         model = VideoClassifier(backbone="x3d_xs", labels=datamodule.labels, pretrained=False)
 
-        print("#########c built task")
+        print("######### built task")
 
         print("######### training")
 
@@ -87,7 +104,7 @@ class FlashTrainer(L.LightningWork):
         )
         trainer.finetune(model, datamodule=datamodule, strategy="freeze")
 
-        print("######### done!")
+        print("######### done training!")
 
 
         # 4. Make a prediction
@@ -97,6 +114,7 @@ class FlashTrainer(L.LightningWork):
 
         # 5. Save the model!
         trainer.save_checkpoint("video_classification.pt")
+        print("######### save the model!")
 
 class TrainDeploy(L.LightningFlow):
     def __init__(self):
